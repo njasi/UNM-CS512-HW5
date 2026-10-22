@@ -1,35 +1,70 @@
-import { Scene, Shader, objects, Controls } from "PotatoEngine";
-import { common } from "PotatoEngine/src/materials";
-import { rgb } from "PotatoEngine/src/objects";
+import { Scene, Controls, lights } from "PotatoEngine";
 import {
   addMaterials,
   addShaders,
+  colors,
+  MATERIAL_CERAMIC,
+  MATERIAL_GROUND,
   SHADER_BASICFRAGMENT,
   SHADER_BASICVERTEX,
   SHADER_PHONGFRAGMENT,
 } from "./setup";
+import {
+  ensureBuildingRowPopulated,
+  generateBuilding,
+  generateNextBuilding,
+} from "./buildings";
+import { PhongShaderProgram } from "PotatoEngine/src/shaders";
+import { generateGridObject } from "PotatoEngine/src/objects";
+import { Light } from "PotatoEngine/src/lights";
+import { rgb } from "PotatoEngine/src/util/color";
+
 const loader = document.getElementById("loader-wrapper");
 
 // try to plug in new scene abstraction
 const scene = new Scene("glcanvas");
-scene.background = [0, 0, 0, 1];
 
-scene.camera.move(0, 0, -2);
+scene.camera.move(0, -2, -2);
+scene.rotationX += Math.PI / 6 / 2;
 
 /**
  * Initalize all the objects in the starting scene
- * - 10 random barrels
- * - cannon
- * - pillar canon sits on
- * - water
+ * - ground
+ * - buildings
+ * - TODO: tracks
  */
-function initSceneObjects(phong = true) {
-  let color = undefined;
+function initSceneObjects() {
   let shader = "basic";
-  let mat = undefined;
+  let mat = MATERIAL_CERAMIC;
+
+  for (let i = 0; i < 30; i++) {
+    ensureBuildingRowPopulated(-10, scene);
+    ensureBuildingRowPopulated(10, scene);
+  }
+
+  const ground = generateGridObject(
+    "testGround",
+    colors.ground,
+    5,
+    1000,
+    0,
+    0,
+    0,
+  );
+  scene.addObject(ground, shader, MATERIAL_GROUND);
 }
 
-let spin = true;
+/**
+ * Add all the starting lights to the scene
+ * @param {*} scene
+ */
+function addLights(scene) {
+  // TODO: make this a global directional light later
+  const globalLight = new Light("globalLight", [0, 20, 10]);
+  globalLight.color = rgb(244, 233, 155);
+  scene.addLight(globalLight);
+}
+
 /**
  * init event listeners on the controls
  *
@@ -47,12 +82,14 @@ function initHandlers() {
 }
 
 /**
- *
+ * Overall scene update function
  */
-function updateScene() {}
+function updateScene() {
+  ensureBuildingRowPopulated(10, scene);
+  ensureBuildingRowPopulated(-10, scene);
+}
 
 scene.setUpdateCB(updateScene);
-
 
 /**
  * Main init function
@@ -65,15 +102,21 @@ scene.setUpdateCB(updateScene);
 async function main() {
   addShaders(scene);
   addMaterials(scene);
+  addLights(scene);
 
   await scene.loadShaders();
 
   scene.addProgram("basic", SHADER_BASICVERTEX, SHADER_BASICFRAGMENT);
-  scene.addProgram("phong", SHADER_BASICVERTEX, SHADER_PHONGFRAGMENT);
-
+  scene.addProgram(
+    "phong",
+    SHADER_BASICVERTEX,
+    SHADER_PHONGFRAGMENT,
+    PhongShaderProgram,
+  );
   scene.loadMaterials();
 
   initSceneObjects();
+
   scene.initBuffers();
 
   Controls.BasicControls.setupMouseControls(scene);

@@ -1,5 +1,9 @@
 # UNM CS512 HW 5
 
+The plan for this assignment is to make "primitive surfers" a parody of the popular slop game subway surfers. 
+
+## Assignment Requirements
+
 In this assignment, you will extend the provided template code and implement lighting and shading on top of it.
 
 1. Geometric Primitives with Shading (2 pts):
@@ -23,6 +27,24 @@ In this assignment, you will extend the provided template code and implement lig
 5. Outstanding effects and creativities will get 1 extra points. (+1 pt)
 
 6. If you plan to submission by uploading files, you need to zip the folder (put your name as part of the folder name) containing all required code, and upload the zipped file. If you plan to submit URL of a GitHub webpage, make sure you don't edit your online repo after the deadline because the timpstamp of the last edit will be considered as the submission time.
+
+
+## TODO
+- [ ] decorations
+    - [ ] buildings on the sides to make movement clear
+    - [ ] traintracks?
+- [ ] lighting
+    - [ ] lampposts
+    - [ ] environmental light
+        - [ ] sun 
+        - [ ] moon
+            - maybe sun / moon are the same light but change color and intensity?  
+        - [ ] could implement directional light for this
+    
+- [ ] controls
+    - [ ] choose daytime or night time, controls sun/moon lights & the lamps
+- [ ] misc
+    - [ ] update render passes to have shadow pass?
 
 ## Development
 

@@ -1,4 +1,9 @@
+import { common } from "PotatoEngine/src/materials";
+import { Shader } from "PotatoEngine/src/shaders";
+import { rgb } from "PotatoEngine/src/util/color";
+
 export const MATERIAL_CERAMIC = "CERAMIC";
+export const MATERIAL_BUILDING = "BUILDING";
 export const MATERIAL_GOLD = "GOLD";
 export const MATERIAL_GEM = "GEM";
 export const MATERIAL_GROUND = "GROUND";
@@ -6,6 +11,11 @@ export const MATERIAL_GROUND = "GROUND";
 export const SHADER_BASICVERTEX = "basicVertex";
 export const SHADER_BASICFRAGMENT = "basicFragment";
 export const SHADER_PHONGFRAGMENT = "phongFragment";
+
+export const colors = {
+  gold: rgb(255, 222, 33),
+  ground: rgb(107, 107, 107),
+};
 
 export function addShaders(scene) {
   scene.addShader(
@@ -49,6 +59,16 @@ export function addMaterials(scene) {
       ka: [0.4, 0.4, 0.4],
       kd: [0.4, 0.4, 0.4],
       ks: [0.8, 0.8, 0.8],
+      specularExp: 32,
+    }),
+    "phong",
+  );
+
+  scene.addMaterial(
+    common.generateMaterial(MATERIAL_BUILDING, {
+      ka: [0.3, 0.3, 0.3],
+      kd: [0.8, 0.8, 0.8],
+      ks: [0.2, 0.2, 0.2],
       specularExp: 32,
     }),
     "phong",
