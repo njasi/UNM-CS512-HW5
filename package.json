@@ -13,5 +13,8 @@
     "webpack": "^5.111.1",
     "webpack-cli": "^6.0.1",
     "webpack-dev-server": "^6.1.0"
+  },
+  "dependencies": {
+    "PotatoEngine": "file:PotatoEngine"
   }
 }
