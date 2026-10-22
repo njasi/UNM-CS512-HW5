@@ -86,16 +86,17 @@ export function generateNextBuilding(x) {
 }
 
 /**
- *
+ * Make sure that the row of buildings at the given x value is fully populated
+ * that is there is not an absence of buildings at a cutoff point
  * @param {*} x
  * @param {Scene} scene
  */
 export function ensureBuildingRowPopulated(
   x,
   scene,
-  { shader = "phong", mat = MATERIAL_BUILDING } = {},
+  { shader = "phong", mat = MATERIAL_BUILDING, cutoff = -80 } = {},
 ) {
-  if ( !PREV_BUILDINGS[x] || PREV_BUILDINGS[x].position[2] > -80) {
+  if (!PREV_BUILDINGS[x] || PREV_BUILDINGS[x].position[2] > cutoff) {
     scene.addObject(generateNextBuilding(x), shader, mat);
   }
 }

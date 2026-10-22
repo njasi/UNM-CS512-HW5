@@ -5,6 +5,7 @@ import { rgb } from "PotatoEngine/src/util/color";
 export const MATERIAL_CERAMIC = "CERAMIC";
 export const MATERIAL_BUILDING = "BUILDING";
 export const MATERIAL_GOLD = "GOLD";
+export const MATERIAL_COIN = "COIN";
 export const MATERIAL_GEM = "GEM";
 export const MATERIAL_GROUND = "GROUND";
 
@@ -79,6 +80,19 @@ export function addMaterials(scene) {
       ka: [0.6, 0.6, 0.6],
       kd: [0.3, 0.3, 0.3],
       ks: [0, 0, 0],
+      specularExp: 1,
+    }),
+    "phong",
+  );
+
+  // gold material but made to be brighter
+  // may want to switch back to normal gold once
+  // there are more lights in the scene...
+  scene.addMaterial(
+    common.generateMaterial(MATERIAL_COIN, {
+      ka: [0.2 * 2, 0.17411764705882354 * 2, 0.025882352941176474 * 2],
+      kd: [0.5 * 1.2, 0.43529411764705883 * 1.2, 0.06470588235294118 * 1.2],
+      ks: [0.9, 0.7835294117647059, 0.11647058823529413],
       specularExp: 1,
     }),
     "phong",

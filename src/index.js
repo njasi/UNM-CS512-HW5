@@ -4,6 +4,8 @@ import {
   addShaders,
   colors,
   MATERIAL_CERAMIC,
+  MATERIAL_COIN,
+  MATERIAL_GOLD,
   MATERIAL_GROUND,
   SHADER_BASICFRAGMENT,
   SHADER_BASICVERTEX,
@@ -18,6 +20,7 @@ import { PhongShaderProgram } from "PotatoEngine/src/shaders";
 import { generateGridObject } from "PotatoEngine/src/objects";
 import { Light } from "PotatoEngine/src/lights";
 import { rgb } from "PotatoEngine/src/util/color";
+import { generateCoin } from "./coin";
 
 const loader = document.getElementById("loader-wrapper");
 
@@ -34,7 +37,7 @@ scene.rotationX += Math.PI / 6 / 2;
  * - TODO: tracks
  */
 function initSceneObjects() {
-  let shader = "basic";
+  let shader = "phong";
   let mat = MATERIAL_CERAMIC;
 
   for (let i = 0; i < 30; i++) {
@@ -52,6 +55,12 @@ function initSceneObjects() {
     0,
   );
   scene.addObject(ground, shader, MATERIAL_GROUND);
+
+  setInterval(() => {
+
+    const x = Math.floor(Math.random() * 3 - 1)  * 4
+    scene.addObject(generateCoin(x, { z: -40 }), shader, MATERIAL_COIN);
+  }, 1000);
 }
 
 /**
