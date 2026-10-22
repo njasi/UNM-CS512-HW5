@@ -1,0 +1,17 @@
+{
+  "name": "unm-cs-512-hw5",
+  "version": "1.0.0",
+  "description": "In this assignment, you will extend the provided template code and implement lighting and shading on top of it.",
+  "main": "index.js",
+  "scripts": {
+    "start": "webpack serve",
+    "build": "webpack --mode production"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "webpack": "^5.111.1",
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-server": "^6.1.0"
+  }
+}
