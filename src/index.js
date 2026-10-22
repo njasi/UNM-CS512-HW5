@@ -7,6 +7,7 @@ import {
   MATERIAL_COIN,
   MATERIAL_GOLD,
   MATERIAL_GROUND,
+  MATERIAL_STEEL,
   SHADER_BASICFRAGMENT,
   SHADER_BASICVERTEX,
   SHADER_PHONGFRAGMENT,
@@ -21,6 +22,7 @@ import { generateGridObject } from "PotatoEngine/src/objects";
 import { Light } from "PotatoEngine/src/lights";
 import { rgb } from "PotatoEngine/src/util/color";
 import { generateCoin } from "./coin";
+import { generateTracks, startTracksLoop } from "./tracks";
 
 const loader = document.getElementById("loader-wrapper");
 
@@ -56,9 +58,12 @@ function initSceneObjects() {
   );
   scene.addObject(ground, shader, MATERIAL_GROUND);
 
-  setInterval(() => {
+  startTracksLoop(0, scene)
+  startTracksLoop(4, scene)
+  startTracksLoop(-4, scene)
 
-    const x = Math.floor(Math.random() * 3 - 1)  * 4
+  setInterval(() => {
+    const x = Math.floor(Math.random() * 3 - 1) * 4;
     scene.addObject(generateCoin(x, { z: -40 }), shader, MATERIAL_COIN);
   }, 1000);
 }
@@ -69,7 +74,7 @@ function initSceneObjects() {
  */
 function addLights(scene) {
   // TODO: make this a global directional light later
-  const globalLight = new Light("globalLight", [0, 20, 10]);
+  const globalLight = new Light("globalLight", [0, 10, -10]);
   globalLight.color = rgb(244, 233, 155);
   scene.addLight(globalLight);
 }
@@ -79,15 +84,15 @@ function addLights(scene) {
  *
  */
 function initHandlers() {
-  document.getElementById("spincheck").addEventListener("input", (event) => {
-    spin = event.target.checked;
-  });
+  // document.getElementById("spincheck").addEventListener("input", (event) => {
+  //   spin = event.target.checked;
+  // });
 
-  document
-    .getElementById("shaderSelector")
-    .addEventListener("input", (event) => {
-      initSceneObjects(event.target.value == "phong");
-    });
+  // document
+  //   .getElementById("shaderSelector")
+  //   .addEventListener("input", (event) => {
+  //     initSceneObjects(event.target.value == "phong");
+  //   });
 }
 
 /**

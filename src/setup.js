@@ -5,9 +5,11 @@ import { rgb } from "PotatoEngine/src/util/color";
 export const MATERIAL_CERAMIC = "CERAMIC";
 export const MATERIAL_BUILDING = "BUILDING";
 export const MATERIAL_GOLD = "GOLD";
+export const MATERIAL_STEEL = "STEEL";
 export const MATERIAL_COIN = "COIN";
 export const MATERIAL_GEM = "GEM";
 export const MATERIAL_GROUND = "GROUND";
+export const MATERIAL_WOOD = "WOOD";
 
 export const SHADER_BASICVERTEX = "basicVertex";
 export const SHADER_BASICFRAGMENT = "basicFragment";
@@ -16,6 +18,8 @@ export const SHADER_PHONGFRAGMENT = "phongFragment";
 export const colors = {
   gold: rgb(255, 222, 33),
   ground: rgb(107, 107, 107),
+  steel: rgb(206, 210, 215),
+  wood: rgb(218, 109, 66),
 };
 
 export function addShaders(scene) {
@@ -80,7 +84,7 @@ export function addMaterials(scene) {
       ka: [0.6, 0.6, 0.6],
       kd: [0.3, 0.3, 0.3],
       ks: [0, 0, 0],
-      specularExp: 1,
+      specularExp: 4,
     }),
     "phong",
   );
@@ -99,4 +103,6 @@ export function addMaterials(scene) {
   );
 
   scene.addMaterial(common.metallic(MATERIAL_GOLD, colors.gold), "phong");
+  scene.addMaterial(common.metallic(MATERIAL_STEEL, colors.steel), "phong");
+  scene.addMaterial(common.wood(MATERIAL_WOOD, colors.wood), "phong");
 }

@@ -11,12 +11,12 @@ export function randomColor(alpha=1) {
 /**
  * Standardize move towards camera function
  */
-export function updateGenericMove(obj, dt, scene) {
+export function updateGenericMove(obj, dt, scene, del=true) {
   // console.log(scene.time);
-  obj.position[2] += 0.2;
+  obj.position[2] += 0.5;
   // console.log(obj.position)
 
-  if(obj.position[2] > 20) {
+  if(del && obj.position[2] > 20) {
     scene.removeObject(obj.label)
   }
 }
