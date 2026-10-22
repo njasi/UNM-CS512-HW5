@@ -1,6 +1,7 @@
 import { generateCylinderObject } from "PotatoEngine/src/objects";
-import { colors } from "./setup";
+import { colors, MATERIAL_COIN } from "./setup";
 import { updateGenericMove } from "./helpers";
+import { Scene } from "PotatoEngine";
 
 let coinNum = 0;
 
@@ -41,4 +42,34 @@ function collideCoin() {}
 function updateCoin(dt, scene) {
   updateGenericMove(this, dt, scene);
   this.rotation[1] += (dt * Math.PI) / 2;
+}
+
+/**
+ * Generate a series of coins
+ */
+
+/**
+ *
+ * @param {*} count
+ * @param {*} x
+ * @param {Scene} scene
+ * @param {Object} options
+ * @param {*} options.y
+ * @param {*} options.z
+ * @param {number} [options.spacing=4]
+ * @param {string} [options.mat=MATERIAL_COIN]
+ * @param {string} [options.shader="phong"]
+ */
+export function addCoinSeries(
+  count,
+  x,
+  scene,
+  { y = 0, z = -100, spacing = 4, mat = MATERIAL_COIN, shader = "phong" } = {},
+) {
+  y = y + COIN_RADIUS + 0.1;
+
+  for (let i = 0; i < count; i++) {
+    const coin = generateCoin(x, { y, z: z - spacing * i });
+    scene.addObject(coin, shader, mat);
+  }
 }

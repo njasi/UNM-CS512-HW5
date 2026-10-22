@@ -18,10 +18,10 @@ import {
   generateNextBuilding,
 } from "./buildings";
 import { PhongShaderProgram } from "PotatoEngine/src/shaders";
-import { generateGridObject } from "PotatoEngine/src/objects";
+import { cacheOBJ, generateGridObject } from "PotatoEngine/src/objects";
 import { Light } from "PotatoEngine/src/lights";
 import { rgb } from "PotatoEngine/src/util/color";
-import { generateCoin } from "./coin";
+import { generateCoin,addCoinSeries } from "./coin";
 import { generateTracks, startTracksLoop } from "./tracks";
 
 const loader = document.getElementById("loader-wrapper");
@@ -64,8 +64,10 @@ function initSceneObjects() {
 
   setInterval(() => {
     const x = Math.floor(Math.random() * 3 - 1) * 4;
-    scene.addObject(generateCoin(x, { z: -40 }), shader, MATERIAL_COIN);
-  }, 1000);
+    // scene.addObject(generateCoin(x, { z: -40 }), shader, MATERIAL_COIN);
+    const coinCount = Math.floor(Math.random() * 5 + 2);
+    addCoinSeries(coinCount, x, scene)
+  }, 2000);
 }
 
 /**
@@ -119,7 +121,8 @@ async function main() {
   addLights(scene);
 
   await scene.loadShaders();
-
+  await cacheOBJ("./public/utah_teapot.obj", "teapot")
+  
   scene.addProgram("basic", SHADER_BASICVERTEX, SHADER_BASICFRAGMENT);
   scene.addProgram(
     "phong",
@@ -130,13 +133,13 @@ async function main() {
   scene.loadMaterials();
 
   initSceneObjects();
-
   scene.initBuffers();
-
+  
   Controls.BasicControls.setupMouseControls(scene);
   Controls.BasicControls.setupKeyboardControls(scene);
   initHandlers();
-
+  
+  loader.className = ""
   setInterval(() => {
     scene.render();
   }, 30);
