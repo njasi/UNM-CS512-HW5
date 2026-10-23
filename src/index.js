@@ -18,14 +18,14 @@ import {
   generateNextBuilding,
 } from "./buildings";
 import { PhongShaderProgram } from "PotatoEngine/src/shaders";
-import { cacheOBJ, generateGridObject } from "PotatoEngine/src/objects";
+import { bandaiNamcoHideTail, cacheBVH, cacheOBJ, generateGridObject, loadBVH, sceneAddBVH } from "PotatoEngine/src/objects";
 import { Light } from "PotatoEngine/src/lights";
 import { hsv, rgb, rgba } from "PotatoEngine/src/util/color";
 import { generateCoin, addCoinSeries } from "./coin";
 import { generateTracks, startTracksLoop } from "./tracks";
 import { addRandomObstacle } from "./obstacle";
 import { LIGHT_DIRECTIONAL } from "PotatoEngine/src/lights/Light";
-import { addLamppost } from "./lamppost";
+import { addLamppost, addNextLamp } from "./lamppost";
 
 const loader = document.getElementById("loader-wrapper");
 
@@ -50,6 +50,15 @@ function initSceneObjects() {
     ensureBuildingRowPopulated(10, scene);
   }
 
+
+  let skeleton = bandaiNamcoHideTail(
+    loadBVH("dash", 3, 16, rgba(0, 0, 0, 1), "player"),
+  );
+  skeleton.scale = [0.02,0.02,0.02];
+  skeleton.rotation[1] = Math.PI
+  skeleton.materialLabel = MATERIAL_GROUND;
+  sceneAddBVH(scene, skeleton, "phong");
+
   const ground = generateGridObject(
     "testGround",
     colors.ground,
@@ -61,7 +70,10 @@ function initSceneObjects() {
   );
   scene.addObject(ground, shader, MATERIAL_GROUND);
 
-  addLamppost(0,scene)
+  for (let i = 0; i < 3; i++) {
+    addNextLamp(6, scene);
+    addNextLamp(-6, scene);
+  }
 
   startTracksLoop(0, scene);
   startTracksLoop(4, scene);
@@ -177,6 +189,7 @@ async function main() {
   addMaterials(scene);
   addLights(scene);
 
+  await cacheBVH(`./public/dash.bvh`, "dash")
   await scene.loadShaders();
   await cacheOBJ("./public/utah_teapot.obj", "teapot");
 

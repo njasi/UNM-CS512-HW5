@@ -11,9 +11,7 @@ import { updateGenericMove } from "./helpers";
 import { Light } from "PotatoEngine/src/lights";
 
 let lampNum = 0;
-
-const prevLamp = {};
-
+const prevLamps = {};
 const lampLights = {};
 
 /**
@@ -23,13 +21,13 @@ const lampLights = {};
  * @param {*} param2
  */
 export function addLamppost(x, scene, { z = -10, shader = "phong" } = {}) {
-  const lampName = `lamp_${lampNum}_{x}`;
-  const lamp = generateCylinderObject(lampName, rgb(0, 0, 0), 32, 0.1, 3);
+  const lampName = `lamp_${lampNum}_${x}`;
+  const lamp = generateCylinderObject(lampName, rgb(0, 0, 0), 8, 0.1, 3);
 
   const lampShadeBottom = generateConeObject(
     lampName + "_bottom",
     rgb(0, 0, 0),
-    32,
+    8,
     0.2,
     0.4,
   );
@@ -39,7 +37,7 @@ export function addLamppost(x, scene, { z = -10, shader = "phong" } = {}) {
   const lampShadeTop = generateSphereObject(
     lampName + "_top",
     rgb(0, 0, 0),
-    32,
+    8,
     0.2,
   );
   lampShadeTop.position[2] = 1.5 + 0.4;
@@ -47,12 +45,12 @@ export function addLamppost(x, scene, { z = -10, shader = "phong" } = {}) {
   const lampBulb = generateCylinderObject(
     lampName + "_bulb",
     rgb(255, 255, 255),
-    32,
+    8,
     0.18,
     0.4,
   );
   lampBulb.position[2] = 1.5 + 0.2;
-  lampBulb.materialLabel = MATERIAL_AMBIENT
+  lampBulb.materialLabel = MATERIAL_AMBIENT;
 
   lamp.position[0] = x;
   lamp.position[1] = 1.5;
@@ -69,22 +67,55 @@ export function addLamppost(x, scene, { z = -10, shader = "phong" } = {}) {
   scene.addObject(lamp, shader, MATERIAL_STEEL, { addChildren: true });
 
   lamp.setUpdateCB(updateLamp);
-  prevLamp[x] = lamp;
+  prevLamps[x] = lamp;
   lampNum++;
 }
 
-
+/**
+ * Update a lamp/light & remove its light properly
+ * @param {*} dt
+ * @param {*} scene
+ */
 function updateLamp(dt, scene) {
   updateGenericMove(this, dt, scene, false);
   const lightName = this.label + "light";
-
-  lampLights[lightName].position[1] = 3;
-  lampLights[lightName].position[0] = this.position[0];
-  lampLights[lightName].position[2] = this.position[2];
+  const light = lampLights[lightName]
+  
+  light.position[0] = this.position[0];
+  light.position[2] = this.position[2];
 
   if (this.position[2] > 20) {
-    scene.removeObject(this.label);
+    addNextLamp(this.position[0], scene);
+
+    scene.removeObject(this.label, { removeChildren: true });
     scene.removeLight(lightName);
     delete lampLights[lightName];
+  }
+}
+
+/**
+ * Add the next lamp in a row
+ * @param {*} x
+ * @param {*} scene
+ */
+export function addNextLamp(x, scene) {
+  const prevLamp = prevLamps[x];
+
+  if (!prevLamp) {
+    addLamppost(x, scene);
+  } else {
+    addLamppost(x, scene, { z: prevLamp.position[2] - 50 });
+  }
+}
+
+/**
+ * Set the color and optionally the intensity of all lamps
+ * @param {*} color
+ * @param {*} intensity
+ */
+export function setLampsColor(color, intensity = 1) {
+  for (const light of Object.values(lampLights)) {
+    light.color = color;
+    light.intensity = intensity;
   }
 }
