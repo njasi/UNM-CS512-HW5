@@ -20,9 +20,12 @@ import {
 import { PhongShaderProgram } from "PotatoEngine/src/shaders";
 import { cacheOBJ, generateGridObject } from "PotatoEngine/src/objects";
 import { Light } from "PotatoEngine/src/lights";
-import { rgb } from "PotatoEngine/src/util/color";
-import { generateCoin,addCoinSeries } from "./coin";
+import { hsv, rgb, rgba } from "PotatoEngine/src/util/color";
+import { generateCoin, addCoinSeries } from "./coin";
 import { generateTracks, startTracksLoop } from "./tracks";
+import { addRandomObstacle } from "./obstacle";
+import { LIGHT_DIRECTIONAL } from "PotatoEngine/src/lights/Light";
+import { addLamppost } from "./lamppost";
 
 const loader = document.getElementById("loader-wrapper");
 
@@ -58,29 +61,51 @@ function initSceneObjects() {
   );
   scene.addObject(ground, shader, MATERIAL_GROUND);
 
-  startTracksLoop(0, scene)
-  startTracksLoop(4, scene)
-  startTracksLoop(-4, scene)
+  addLamppost(0,scene)
 
-  setInterval(() => {
-    const x = Math.floor(Math.random() * 3 - 1) * 4;
-    // scene.addObject(generateCoin(x, { z: -40 }), shader, MATERIAL_COIN);
-    const coinCount = Math.floor(Math.random() * 5 + 2);
-    addCoinSeries(coinCount, x, scene)
-  }, 2000);
+  startTracksLoop(0, scene);
+  startTracksLoop(4, scene);
+  startTracksLoop(-4, scene);
 }
 
 /**
  * Add all the starting lights to the scene
  * @param {*} scene
  */
+const globalLight = new Light("globalLight", [0, 10, -10], {
+  type: LIGHT_DIRECTIONAL,
+  direction: [-1, -1, 0],
+  intensity: 0.75,
+});
+
+const lightSettings = {
+  day: {
+    color: rgb(244, 233, 155),
+    intensity: 0.75,
+    sceneColor: rgba(64, 112, 255, 1),
+  },
+  night: {
+    color: rgb(255, 248, 222),
+    intensity: 0.2,
+    sceneColor: rgb(0, 0, 0),
+  },
+  gamer: {
+    color: rgb(0, 0, 0),
+    intensity: 1,
+    sceneColor: rgb(0, 0, 0),
+  },
+};
+
 function addLights(scene) {
   // TODO: make this a global directional light later
-  const globalLight = new Light("globalLight", [0, 10, -10]);
-  globalLight.color = rgb(244, 233, 155);
+  globalLight.color = lightSettings.day.color;
+  globalLight.intensity = lightSettings.day.intensity;
   scene.addLight(globalLight);
 }
 
+const config = {
+  lightMode: "day",
+};
 /**
  * init event listeners on the controls
  *
@@ -89,20 +114,52 @@ function initHandlers() {
   // document.getElementById("spincheck").addEventListener("input", (event) => {
   //   spin = event.target.checked;
   // });
+  document
+    .getElementById("lightModeSelector")
+    .addEventListener("input", (event) => {
+      config[event.target.name] = event.target.value;
 
-  // document
-  //   .getElementById("shaderSelector")
-  //   .addEventListener("input", (event) => {
-  //     initSceneObjects(event.target.value == "phong");
-  //   });
+      globalLight.color = lightSettings[event.target.value].color;
+      globalLight.intensity = lightSettings[event.target.value].intensity;
+      scene.background = lightSettings[event.target.value].sceneColor;
+    });
 }
 
+let lastCoin = 0;
+let lastTrain = 0;
+let lastObstacle = 0;
+const COIN_INTERVAL = 2000;
+const TRAIN_INTERVAL = 5000;
+const OBSTACLE_INTERVAL = 2000;
 /**
  * Overall scene update function
  */
 function updateScene() {
   ensureBuildingRowPopulated(10, scene);
   ensureBuildingRowPopulated(-10, scene);
+
+  if (scene.time - lastCoin > COIN_INTERVAL) {
+    lastCoin = scene.time;
+    const x = Math.floor(Math.random() * 3 - 1) * 4;
+    // scene.addObject(generateCoin(x, { z: -40 }), shader, MATERIAL_COIN);
+    const coinCount = Math.ceil(Math.random() * 6 + 3);
+    addCoinSeries(coinCount, x, scene);
+  }
+
+  if (scene.time - lastObstacle > OBSTACLE_INTERVAL) {
+    lastObstacle = scene.time;
+    const x = Math.floor(Math.random() * 3 - 1) * 4;
+    addRandomObstacle(x, scene);
+  }
+
+  if (scene.time - lastObstacle > TRAIN_INTERVAL) {
+    lastTrain = scene.time;
+    // TODO put train car on the tracks
+  }
+
+  if (config.lightMode == "gamer") {
+    globalLight.color = hsv(scene.time / 10, 1, 1);
+  }
 }
 
 scene.setUpdateCB(updateScene);
@@ -121,8 +178,8 @@ async function main() {
   addLights(scene);
 
   await scene.loadShaders();
-  await cacheOBJ("./public/utah_teapot.obj", "teapot")
-  
+  await cacheOBJ("./public/utah_teapot.obj", "teapot");
+
   scene.addProgram("basic", SHADER_BASICVERTEX, SHADER_BASICFRAGMENT);
   scene.addProgram(
     "phong",
@@ -134,12 +191,13 @@ async function main() {
 
   initSceneObjects();
   scene.initBuffers();
-  
+
   Controls.BasicControls.setupMouseControls(scene);
   Controls.BasicControls.setupKeyboardControls(scene);
   initHandlers();
-  
-  loader.className = ""
+
+  loader.className = "";
+  scene.time = 0;
   setInterval(() => {
     scene.render();
   }, 30);

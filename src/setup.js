@@ -10,6 +10,7 @@ export const MATERIAL_COIN = "COIN";
 export const MATERIAL_GEM = "GEM";
 export const MATERIAL_GROUND = "GROUND";
 export const MATERIAL_WOOD = "WOOD";
+export const MATERIAL_AMBIENT = "AMBIENT";
 
 export const SHADER_BASICVERTEX = "basicVertex";
 export const SHADER_BASICFRAGMENT = "basicFragment";
@@ -105,4 +106,8 @@ export function addMaterials(scene) {
   scene.addMaterial(common.metallic(MATERIAL_GOLD, colors.gold), "phong");
   scene.addMaterial(common.metallic(MATERIAL_STEEL, colors.steel), "phong");
   scene.addMaterial(common.wood(MATERIAL_WOOD, colors.wood), "phong");
+  scene.addMaterial(
+    common.ambientOnly(MATERIAL_AMBIENT, rgb(255, 255, 255)),
+    "phong",
+  );
 }
