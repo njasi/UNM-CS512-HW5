@@ -18,7 +18,14 @@ import {
   generateNextBuilding,
 } from "./buildings";
 import { PhongShaderProgram } from "PotatoEngine/src/shaders";
-import { bandaiNamcoHideTail, cacheBVH, cacheOBJ, generateGridObject, loadBVH, sceneAddBVH } from "PotatoEngine/src/objects";
+import {
+  bandaiNamcoHideTail,
+  cacheBVH,
+  cacheOBJ,
+  generateGridObject,
+  loadBVH,
+  sceneAddBVH,
+} from "PotatoEngine/src/objects";
 import { Light } from "PotatoEngine/src/lights";
 import { hsv, rgb, rgba } from "PotatoEngine/src/util/color";
 import { generateCoin, addCoinSeries } from "./coin";
@@ -26,6 +33,7 @@ import { generateTracks, startTracksLoop } from "./tracks";
 import { addRandomObstacle } from "./obstacle";
 import { LIGHT_DIRECTIONAL } from "PotatoEngine/src/lights/Light";
 import { addLamppost, addNextLamp } from "./lamppost";
+import { createBVHControls, updateBVHControls } from "./bvhControls";
 
 const loader = document.getElementById("loader-wrapper");
 
@@ -35,6 +43,7 @@ const scene = new Scene("glcanvas");
 scene.camera.move(0, -2, -2);
 scene.rotationX += Math.PI / 6 / 2;
 
+let player;
 /**
  * Initalize all the objects in the starting scene
  * - ground
@@ -50,14 +59,13 @@ function initSceneObjects() {
     ensureBuildingRowPopulated(10, scene);
   }
 
-
-  let skeleton = bandaiNamcoHideTail(
+  player = bandaiNamcoHideTail(
     loadBVH("dash", 3, 16, rgba(0, 0, 0, 1), "player"),
   );
-  skeleton.scale = [0.02,0.02,0.02];
-  skeleton.rotation[1] = Math.PI
-  skeleton.materialLabel = MATERIAL_GROUND;
-  sceneAddBVH(scene, skeleton, "phong");
+  player.scale = [0.02, 0.02, 0.02];
+  player.rotation[1] = Math.PI;
+  player.materialLabel = MATERIAL_GROUND;
+  sceneAddBVH(scene, player, "phong");
 
   const ground = generateGridObject(
     "testGround",
@@ -123,9 +131,20 @@ const config = {
  *
  */
 function initHandlers() {
-  // document.getElementById("spincheck").addEventListener("input", (event) => {
-  //   spin = event.target.checked;
-  // });
+  document.getElementById("runcheck").addEventListener("input", (event) => {
+    player.animationPlay = event.target.checked;
+  });
+
+  const matSel = document.getElementById("playerMat");
+
+  scene.materials.forEach((mat) => {
+    matSel.innerHTML += `<option value="${mat.label}">${mat.label}</option>`;
+  });
+
+  matSel.addEventListener("input", (event) => {
+    player.materialLabel = event.target.value;
+  });
+
   document
     .getElementById("lightModeSelector")
     .addEventListener("input", (event) => {
@@ -189,7 +208,7 @@ async function main() {
   addMaterials(scene);
   addLights(scene);
 
-  await cacheBVH(`./public/dash.bvh`, "dash")
+  await cacheBVH(`./public/dash.bvh`, "dash");
   await scene.loadShaders();
   await cacheOBJ("./public/utah_teapot.obj", "teapot");
 
@@ -203,6 +222,7 @@ async function main() {
   scene.loadMaterials();
 
   initSceneObjects();
+  createBVHControls(player, scene);
   scene.initBuffers();
 
   Controls.BasicControls.setupMouseControls(scene);
@@ -211,8 +231,14 @@ async function main() {
 
   loader.className = "";
   scene.time = 0;
+
+  let frame = 0;
   setInterval(() => {
     scene.render();
+    if (frame % 4 == 0) {
+      updateBVHControls(player, scene);
+    }
+    frame++;
   }, 30);
 }
 
