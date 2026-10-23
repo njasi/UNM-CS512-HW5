@@ -20,9 +20,8 @@ In this assignment, you will extend the provided template code and implement lig
    At least two light sources in the scene (including the provide light source).
 
 4. Interactive Controls (4 pts)
-
    - [x] Add UI controls for the movements of at least two segments/objects, beyond the controls already provided in the template. (2/4 pt)
-   - [1/2] Add UI controls for adjusting lighting or materials on at least two segments/objects. (2/4 pt)
+   - [x] Add UI controls for adjusting lighting or materials on at least two segments/objects. (2/4 pt)
 
 5. Outstanding effects and creativities will get 1 extra points. (+1 pt)
 

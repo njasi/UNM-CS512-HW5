@@ -2,23 +2,27 @@ import { Scene } from "PotatoEngine";
 import {
   generateConeObject,
   generateCubeObject,
+  generateCylinder,
   generateCylinderObject,
   generateGridObject,
   generateNGonPrismObject,
   generateOBJObject,
+  generateSphere,
   generateSphereObject,
   generateTorusObject,
+  PhysicsObject,
 } from "PotatoEngine/src/objects";
 import { updateGenericMove } from "./helpers";
 import {
   colors,
   MATERIAL_CERAMIC,
+  MATERIAL_DAMAGE,
   MATERIAL_STEEL,
   MATERIAL_WOOD,
 } from "./setup";
 import { rgb } from "PotatoEngine/src/util/color";
 
-const SEGMENTS = 32;
+const SEGMENTS = 16;
 
 /**
  * All the random primitive types to choose from for the obstacles
@@ -86,16 +90,52 @@ const OBSTACLE_OPTIONS = [
   //   const cube = generateCubeObject(obstacleName, color);
   //   return cube;
   // },
-  (obstacleName, color) => {
-    const barrel = generateCylinderObject(obstacleName, color, 8, 0.75, 2, {
+  (obstacleName, color, mat_prefix) => {
+    const hitboxPrim = generateCylinder(8, 0.75, 2, {
       bulge: 0.25,
-      segments_h: SEGMENTS,
+      segments_h: SEGMENTS / 2,
       prism: true,
     });
+    hitboxPrim.generateColors(color);
+    const {
+      vertices,
+      normals,
+      colors: primColors,
+      indices,
+    } = hitboxPrim.toTypedArray();
+    const barrel = new PhysicsObject(
+      obstacleName,
+      vertices,
+      primColors,
+      indices,
+      normals,
+    );
+
+    barrel.gravity = 0;
+    barrel.velocity = [0, 0, 0];
+
+    barrel.collidable = true;
+    barrel.hitboxRadius = 1;
+    barrel.onCollision = (barrel, target) => {
+      if (target.label == "playerROOT") {
+        target.score = 0;
+        barrel.collidable = false;
+        target.materialLabel = MATERIAL_DAMAGE;
+        setTimeout(() => {
+          target.materialLabel = MATERIAL_CERAMIC;
+        }, 500);
+      }
+    };
+
+    // const barrel = generateCylinderObject(obstacleName, color, 8, 0.75, 2, {
+    //   bulge: 0.25,
+    //   segments_h: SEGMENTS,
+    //   prism: true,
+    // });
     barrel.rotation[2] = Math.PI / 2;
     barrel.position[1] = 0.8;
 
-    barrel.materialLabel = MATERIAL_WOOD;
+    barrel.materialLabel = mat_prefix + MATERIAL_WOOD;
 
     const strap = generateCylinderObject(
       obstacleName + "_strap1",
@@ -104,7 +144,7 @@ const OBSTACLE_OPTIONS = [
       0.9,
       0.2,
     );
-    strap.materialLabel = MATERIAL_STEEL;
+    strap.materialLabel = mat_prefix + MATERIAL_STEEL;
     strap.position[2] = 0.7;
 
     const strap2 = generateCylinderObject(
@@ -114,8 +154,8 @@ const OBSTACLE_OPTIONS = [
       0.9,
       0.2,
     );
-    strap2.materialLabel = MATERIAL_STEEL;
-    strap2.position[2] = -0.7
+    strap2.materialLabel = mat_prefix + MATERIAL_STEEL;
+    strap2.position[2] = -0.7;
 
     barrel.addChild(strap);
     barrel.addChild(strap2);
@@ -139,7 +179,7 @@ export function addRandomObstacle(
 
   const obj = OBSTACLE_OPTIONS[
     Math.floor(Math.random() * OBSTACLE_OPTIONS.length)
-  ](obstacleName, rgb(255, 0, 0));
+  ](obstacleName, rgb(255, 0, 0), shader == "phong" ? "" : "FLAT_");
 
   obj.position[0] = x;
   obj.position[2] = z;
@@ -149,6 +189,8 @@ export function addRandomObstacle(
   if (!obj.materialLabel) {
     obj.materialLabel = MATERIAL_CERAMIC;
   }
+
+  console.log("barrel shader", shader);
 
   obj.setUpdateCB(updateObstacle);
   scene.addObject(obj, shader, obj.materialLabel, { addChildren: true });

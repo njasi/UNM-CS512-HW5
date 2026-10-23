@@ -1,0 +1,98 @@
+#version 300 es
+precision mediump float;
+#define MAX_LIGHTS 16
+
+in vec3 vColor;
+in vec3 vPosition;
+
+out vec4 fragColor;
+
+const int LIGHT_POINT = 0;
+const int LIGHT_SPOT = 1;
+const int LIGHT_DIRECTIONAL = 2;
+
+struct Light {
+    vec3 position;
+    // TODO separate the color into channels?
+    vec3 color;
+    float intensity;
+    int type;
+    // for spotlights & directional lights
+    vec3 direction;
+    // for spotlight
+    float cutoff;
+    float spotExponent;
+    // light attenuation
+    float attA;
+    float attB;
+    float attC;
+};
+
+struct Material {
+    vec3 ka;
+    vec3 kd;
+    vec3 ks;
+    float specularExp;
+    float alpha;
+};
+
+uniform Light uLights[MAX_LIGHTS];
+uniform Material mat;
+uniform int uLightCount;
+
+// given the Light source, calculate the contribution
+// ambient light has 
+vec3 ambient() {
+    return mat.ka * vColor;
+}
+
+// calculate the overall phong lighting value for one light
+vec3 phongShading(Light l, vec3 N) {
+    vec3 L;
+    float fatt = 1.0f;
+
+    if(l.type == LIGHT_DIRECTIONAL) {
+        L = normalize(-l.direction);
+    } else {
+        vec3 _L = l.position - vPosition;
+        float d = length(_L);
+        L = normalize(_L);
+        fatt = 1.0f / (l.attA + l.attB * d + l.attC * d * d);
+
+        if(l.type == LIGHT_SPOT) {
+            float spotCos = dot(normalize(l.direction), normalize(-_L));
+            float cutoffCos = cos(l.cutoff);
+
+            if(spotCos < cutoffCos) {
+                fatt = 0.0f;
+            } else {
+                fatt *= pow(max(spotCos, 0.0f), l.spotExponent);
+            }
+        }
+    }
+
+    vec3 V = normalize(-vPosition);
+    vec3 R = reflect(-L, N);
+
+    float diff = max(dot(N, L), 0.0f);
+    float spec = pow(max(dot(V, R), 0.0f), mat.specularExp);
+
+    return fatt * l.intensity * l.color * (mat.kd * diff + mat.ks * spec);
+}
+
+void main() {
+    // calculate the normal from vert positions rather than supplied normals
+    // ie flat shading...
+    vec3 N = normalize(cross(dFdx(vPosition), dFdy(vPosition)));
+
+    // ambient only calcuated once
+    vec3 totalColor = ambient();
+
+    // seesm like length of the array is alwasy the max i defined
+    // so probably need to pass through a count uniform?
+    for(int i = 0; i < uLightCount; i++) {
+        totalColor += phongShading(uLights[i], N);
+    }
+
+    fragColor = vec4(totalColor, mat.alpha);
+}

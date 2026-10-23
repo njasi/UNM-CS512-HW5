@@ -10,6 +10,7 @@ import {
   MATERIAL_STEEL,
   SHADER_BASICFRAGMENT,
   SHADER_BASICVERTEX,
+  SHADER_FLATFRAGMENT,
   SHADER_PHONGFRAGMENT,
 } from "./setup";
 import {
@@ -36,7 +37,7 @@ import { addLamppost, addNextLamp } from "./lamppost";
 import { createBVHControls, updateBVHControls } from "./bvhControls";
 
 const loader = document.getElementById("loader-wrapper");
-
+const scoreSpan = document.getElementById("score");
 // try to plug in new scene abstraction
 const scene = new Scene("glcanvas");
 
@@ -44,6 +45,8 @@ scene.camera.move(0, -2, -2);
 scene.rotationX += Math.PI / 6 / 2;
 
 let player;
+let targetProgram = "phong";
+let barrelProgram = "phong";
 /**
  * Initalize all the objects in the starting scene
  * - ground
@@ -51,21 +54,20 @@ let player;
  * - TODO: tracks
  */
 function initSceneObjects() {
-  let shader = "phong";
-  let mat = MATERIAL_CERAMIC;
-
   for (let i = 0; i < 30; i++) {
-    ensureBuildingRowPopulated(-10, scene);
-    ensureBuildingRowPopulated(10, scene);
+    ensureBuildingRowPopulated(-10, scene, { shader: targetProgram });
+    ensureBuildingRowPopulated(10, scene, { shader: targetProgram });
   }
 
   player = bandaiNamcoHideTail(
     loadBVH("dash", 3, 16, rgba(0, 0, 0, 1), "player"),
   );
+
   player.scale = [0.02, 0.02, 0.02];
   player.rotation[1] = Math.PI;
   player.materialLabel = MATERIAL_GROUND;
-  sceneAddBVH(scene, player, "phong");
+  sceneAddBVH(scene, player, targetProgram);
+  makePlayerCollidable();
 
   const ground = generateGridObject(
     "testGround",
@@ -76,7 +78,7 @@ function initSceneObjects() {
     0,
     0,
   );
-  scene.addObject(ground, shader, MATERIAL_GROUND);
+  scene.addObject(ground, targetProgram, MATERIAL_GROUND);
 
   for (let i = 0; i < 3; i++) {
     addNextLamp(6, scene);
@@ -154,6 +156,23 @@ function initHandlers() {
       globalLight.intensity = lightSettings[event.target.value].intensity;
       scene.background = lightSettings[event.target.value].sceneColor;
     });
+
+  document
+    .getElementById("shadingSelector")
+    .addEventListener("input", (event) => {
+      const target = event.target.value;
+      if (!["phong", "flat", "basic"].includes(target)) {
+        return;
+      }
+
+      barrelProgram = target;
+    });
+}
+
+function makePlayerCollidable() {
+  player.score = 0;
+  player.hitboxRadius = 2;
+  player.collidable = true;
 }
 
 let lastCoin = 0;
@@ -166,21 +185,21 @@ const OBSTACLE_INTERVAL = 2000;
  * Overall scene update function
  */
 function updateScene() {
-  ensureBuildingRowPopulated(10, scene);
-  ensureBuildingRowPopulated(-10, scene);
+  ensureBuildingRowPopulated(10, scene, { shader: targetProgram });
+  ensureBuildingRowPopulated(-10, scene, { shader: targetProgram });
 
   if (scene.time - lastCoin > COIN_INTERVAL) {
     lastCoin = scene.time;
     const x = Math.floor(Math.random() * 3 - 1) * 4;
     // scene.addObject(generateCoin(x, { z: -40 }), shader, MATERIAL_COIN);
     const coinCount = Math.ceil(Math.random() * 6 + 3);
-    addCoinSeries(coinCount, x, scene);
+    addCoinSeries(coinCount, x, scene, { shader: targetProgram });
   }
 
   if (scene.time - lastObstacle > OBSTACLE_INTERVAL) {
     lastObstacle = scene.time;
     const x = Math.floor(Math.random() * 3 - 1) * 4;
-    addRandomObstacle(x, scene);
+    addRandomObstacle(x, scene, { shader: barrelProgram });
   }
 
   if (scene.time - lastObstacle > TRAIN_INTERVAL) {
@@ -195,6 +214,26 @@ function updateScene() {
 
 scene.setUpdateCB(updateScene);
 
+function setupKeyboardControls() {
+  document.addEventListener("keydown", (e) => {
+    const playerX = player.position[0];
+    switch (e.key) {
+      case "a":
+      case "ArrowLeft":
+        if (playerX >= 0) {
+          player.position[0] -= 4;
+        }
+        break;
+      case "d":
+      case "ArrowRight":
+        if (playerX <= 0) {
+          player.position[0] += 4;
+        }
+        break;
+    }
+  });
+}
+
 /**
  * Main init function
  * - load the scene shaders
@@ -206,6 +245,7 @@ scene.setUpdateCB(updateScene);
 async function main() {
   addShaders(scene);
   addMaterials(scene);
+  addMaterials(scene, true);
   addLights(scene);
 
   await cacheBVH(`./public/dash.bvh`, "dash");
@@ -213,6 +253,13 @@ async function main() {
   await cacheOBJ("./public/utah_teapot.obj", "teapot");
 
   scene.addProgram("basic", SHADER_BASICVERTEX, SHADER_BASICFRAGMENT);
+  scene.addProgram(
+    "flat",
+    SHADER_BASICVERTEX,
+    SHADER_FLATFRAGMENT,
+    PhongShaderProgram,
+  );
+
   scene.addProgram(
     "phong",
     SHADER_BASICVERTEX,
@@ -226,7 +273,8 @@ async function main() {
   scene.initBuffers();
 
   Controls.BasicControls.setupMouseControls(scene);
-  Controls.BasicControls.setupKeyboardControls(scene);
+  // Controls.BasicControls.setupKeyboardControls(scene);
+  setupKeyboardControls();
   initHandlers();
 
   loader.className = "";
@@ -237,6 +285,7 @@ async function main() {
     scene.render();
     if (frame % 4 == 0) {
       updateBVHControls(player, scene);
+      scoreSpan.innerText = player.score;
     }
     frame++;
   }, 30);

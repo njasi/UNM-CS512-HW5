@@ -1,5 +1,9 @@
-import { generateCylinderObject } from "PotatoEngine/src/objects";
-import { colors, MATERIAL_COIN } from "./setup";
+import {
+  generateCylinder,
+  generateCylinderObject,
+  PhysicsObject,
+} from "PotatoEngine/src/objects";
+import { colors as projectColors, MATERIAL_COIN } from "./setup";
 import { updateGenericMove } from "./helpers";
 import { Scene } from "PotatoEngine";
 
@@ -9,21 +13,36 @@ const COIN_WIDTH = 0.15;
 const COIN_RADIUS = 0.4;
 
 export function generateCoin(x, { y = COIN_RADIUS + 0.1, z = 0 } = {}) {
-  const coin = generateCylinderObject(
-    `coin_${coinNum}_${x}`,
-    colors.gold,
-    32,
-    COIN_RADIUS,
-    COIN_WIDTH,
-  );
+  const coinName = `coin_${coinNum}_${x}`;
   coinNum++;
+  const coinPrim = generateCylinder(32, COIN_RADIUS, COIN_WIDTH);
+  coinPrim.generateColors(projectColors.gold);
+
+  const { vertices, normals, colors, indices } = coinPrim.toTypedArray();
+
+  const coin = new PhysicsObject(coinName, vertices, colors, indices, normals);
+  coin.gravity = 0;
+  coin.velocity = [0, 0, 0];
 
   coin.position[0] = x;
   coin.position[1] = y;
   coin.position[2] = z;
-  coin.setUpdateCB(updateCoin);
+  
+  const collidableCoin = Object.assign(
+    Object.create(PhysicsObject.prototype),
+    coin,
+  );
+  collidableCoin.setUpdateCB(updateCoin);
 
-  return coin;
+  collidableCoin.collidable = true;
+  collidableCoin.hitboxRadius = COIN_RADIUS/2;
+  collidableCoin.onCollision = (coin, target) => {
+    if (target.label == "playerROOT"){
+      coin.position[1] = -10;
+      target.score += 1;
+    }
+  };
+  return collidableCoin;
 }
 
 /**
