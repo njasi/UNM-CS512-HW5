@@ -60,17 +60,23 @@ export function generateCoin(x, { y = COIN_RADIUS + 0.1, z = 0 } = {}) {
   );
   collidableCoin.setUpdateCB(updateCoin);
 
+  collidableCoin.teapot = false;
   if (isTeapot) {
     coin.rotation[0] = -Math.PI / 2;
     collidableCoin.lightingCenter = undefined;
     collidableCoin.materialLabel = MATERIAL_CERAMIC;
+    collidableCoin.teapot = true;
+    collidableCoin.setUpdateCB(updateTeapot);
   }
 
   collidableCoin.collidable = true;
   collidableCoin.hitboxRadius = COIN_RADIUS / 2;
   collidableCoin.onCollision = (coin, target) => {
     if (target.label == "playerROOT") {
-      coin.position[1] = -10;
+      coin.position[0] = -100;
+      if (coin.teapot) {
+        target.score += 10;
+      }
       target.score += 1;
     }
   };
@@ -93,6 +99,18 @@ function collideCoin() {}
 function updateCoin(dt, scene) {
   updateGenericMove(this, dt, scene);
   this.rotation[1] += (dt * Math.PI) / 2;
+}
+
+/**
+ * Spin teapot, move it towards the camera
+ *
+ * maybe should have a shared "move towards camera function" since
+ * coins will use, buildings, obstacles
+ */
+function updateTeapot(dt, scene) {
+  updateGenericMove(this, dt, scene);
+  this.rotation[1] += (dt * Math.PI) / 2;
+  this.position[1] = 0.5 * Math.sin(scene.time / 800) + 0.5;
 }
 
 /**
