@@ -1,5 +1,5 @@
 import { common } from "PotatoEngine/src/materials";
-import { Shader } from "PotatoEngine/src/shaders";
+import { PhongShaderProgram, Shader } from "PotatoEngine/src/shaders";
 import { rgb } from "PotatoEngine/src/util/color";
 
 export const MATERIAL_CERAMIC = "CERAMIC";
@@ -37,40 +37,25 @@ export const colors = {
 };
 
 export function addShaders(scene) {
-  scene.addShader(
-    new Shader(
-      SHADER_BASICVERTEX,
-      scene.gl.VERTEX_SHADER,
-      "",
-      "./PotatoEngine/src/shaders/vertex.vert",
-    ),
+  scene.createProgram(
+    "phong",
+    "../PotatoEngine/src/shaders/vertex/vertex.vert",
+    "../PotatoEngine/src/shaders/fragment/phong.frag",
+    PhongShaderProgram,
   );
 
-  scene.addShader(
-    new Shader(
-      SHADER_BASICFRAGMENT,
-      scene.gl.FRAGMENT_SHADER,
-      "",
-      "./PotatoEngine/src/shaders/fragment.frag",
-    ),
+  scene.createProgram(
+    "flat",
+    "../PotatoEngine/src/shaders/vertex/vertex.vert",
+    "./src/flat.frag",
+    PhongShaderProgram,
   );
 
-  scene.addShader(
-    new Shader(
-      SHADER_FLATFRAGMENT,
-      scene.gl.FRAGMENT_SHADER,
-      "",
-      "./src/flat.frag",
-    ),
-  );
-
-  scene.addShader(
-    new Shader(
-      SHADER_PHONGFRAGMENT,
-      scene.gl.FRAGMENT_SHADER,
-      "",
-      "./PotatoEngine/src/shaders/phong.frag",
-    ),
+  scene.createProgram(
+    "basic",
+    "../PotatoEngine/src/shaders/vertex/vertex.vert",
+    "../PotatoEngine/src/shaders/fragment/fragment.frag",
+    PhongShaderProgram,
   );
 }
 

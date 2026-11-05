@@ -1,15 +1,7 @@
 import { Scene } from "PotatoEngine";
 import {
-  generateConeObject,
-  generateCubeObject,
   generateCylinder,
   generateCylinderObject,
-  generateGridObject,
-  generateNGonPrismObject,
-  generateOBJObject,
-  generateSphere,
-  generateSphereObject,
-  generateTorusObject,
   PhysicsObject,
 } from "PotatoEngine/src/objects";
 import { updateGenericMove } from "./helpers";
@@ -28,68 +20,6 @@ const SEGMENTS = 16;
  * All the random primitive types to choose from for the obstacles
  */
 const OBSTACLE_OPTIONS = [
-  // (obstacleName, color) => {
-  //   const cyl = generateCylinderObject(obstacleName, color, SEGMENTS, 1, 1);
-  //   return cyl;
-  // },
-  // (obstacleName, color) => {
-  //   const cylBulge = generateCylinderObject(
-  //     obstacleName,
-  //     color,
-  //     SEGMENTS,
-  //     1,
-  //     1,
-  //     {
-  //       bulge: 0.25,
-  //       segments_h: SEGMENTS,
-  //     },
-  //   );
-  //   return cylBulge;
-  // },
-  // (obstacleName, color) => {
-  //   const sphere = generateSphereObject(obstacleName, color, SEGMENTS, 1);
-
-  //   return sphere;
-  // },
-  // (obstacleName, color) => {
-  //   const cone = generateConeObject(obstacleName, color, SEGMENTS, 1, 1);
-  //   return cone;
-  // },
-  // (obstacleName, color) => {
-  //   const grid = generateGridObject(obstacleName, color, SEGMENTS, 2);
-  //   return grid;
-  // },
-  // (obstacleName, color) => {
-  //   const prism6 = generateNGonPrismObject(obstacleName, color, 6, 1, 1);
-  //   return prism6;
-  // },
-  // (obstacleName, color) => {
-  //   const prism4 = generateNGonPrismObject(
-  //     obstacleName,
-  //     color,
-  //     4,
-  //     1,
-  //     Math.sqrt(2),
-  //   );
-  //   return prism4;
-  // },
-  // (obstacleName, color) => {
-  //   const prism3 = generateNGonPrismObject(obstacleName, color, 3, 1, 1);
-  //   return prism3;
-  // },
-  // (obstacleName, color) => {
-  //   const torus = generateTorusObject(obstacleName, color, SEGMENTS, 1, 0.5);
-  //   return torus;
-  // },
-  // (obstacleName, color) => {
-  //   const teapot = generateOBJObject(obstacleName, color, "teapot");
-  //   teapot.scale = [0.5, 0.5, 0.5];
-  //   return teapot;
-  // },
-  // (obstacleName, color) => {
-  //   const cube = generateCubeObject(obstacleName, color);
-  //   return cube;
-  // },
   (obstacleName, color, mat_prefix) => {
     const hitboxPrim = generateCylinder(8, 0.75, 2, {
       bulge: 0.25,
@@ -148,7 +78,7 @@ const OBSTACLE_OPTIONS = [
     strap.position[2] = 0.7;
 
     const strap2 = generateCylinderObject(
-      obstacleName + "_strap1",
+      obstacleName + "_strap2",
       colors.steel,
       SEGMENTS,
       0.9,
@@ -156,6 +86,10 @@ const OBSTACLE_OPTIONS = [
     );
     strap2.materialLabel = mat_prefix + MATERIAL_STEEL;
     strap2.position[2] = -0.7;
+
+    barrel.lightingCenter = undefined;
+    strap.lightingCenter = undefined;
+    strap2.lightingCenter = undefined;
 
     barrel.addChild(strap);
     barrel.addChild(strap2);
@@ -189,8 +123,6 @@ export function addRandomObstacle(
   if (!obj.materialLabel) {
     obj.materialLabel = MATERIAL_CERAMIC;
   }
-
-  console.log("barrel shader", shader);
 
   obj.setUpdateCB(updateObstacle);
   scene.addObject(obj, shader, obj.materialLabel, { addChildren: true });

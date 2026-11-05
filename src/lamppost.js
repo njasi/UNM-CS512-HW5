@@ -104,7 +104,7 @@ export function addNextLamp(x, scene) {
   if (!prevLamp) {
     addLamppost(x, scene);
   } else {
-    addLamppost(x, scene, { z: prevLamp.position[2] - 50 });
+    addLamppost(x, scene, { z: prevLamp.position[2] - 30 });
   }
 }
 

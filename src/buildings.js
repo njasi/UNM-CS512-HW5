@@ -43,6 +43,7 @@ export function generateBuilding(
   build.rotation[0] = -Math.PI / 2;
   build.rotation[1] = Math.PI / 4;
   build.position = [x, y + height / 2, z];
+  build.lightingCenter = undefined;
 
   // just going to shove extra metadata into here maybe make it standard later
   build.meta = {};
