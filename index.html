@@ -11,6 +11,22 @@
 
   <!-- project specific styles -->
   <script defer src="./dist/bundle.js"></script>
+
+  <style>
+    #score-label.damage {
+      background-color: red;
+      color: white;
+      font-weight: bold;
+    }
+
+    #score-label {
+      transition: all;
+      transition-duration: 100ms;
+      transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
+      min-width: 6rem;
+      padding: 5px;
+    }
+  </style>
 </head>
 
 <body>
@@ -81,7 +97,7 @@
       </div>
 
       <div class="controls">
-        <code><label>Score: <span id="score">0</span></label></code>
+        <code><label id = "score-label">Score: <span id="score">0</span></label></code>
         <label>
           Light Mode
           <select id="lightModeSelector" name="lightMode">
@@ -130,7 +146,24 @@
         Switch to the basic shader program to visualize vertices with random colors.
       </li>
     </ul>
+    <h2>What's Up With The Running Animation?</h2>
+    <p>The running animation is an feature I implemented in <a href="https://cs512.njasi.com/homework/hw4/">Homework
+        4</a> that adds the ability to load BVH animation files into the Potato Engine. Homework 4 has details on it if
+      you're interested.</p>
 
+    <h2>Anything Else Interesting?</h2>
+    <p>Not really, I didn't have much time to do this assignment. I implemented spotlights and directional global lights
+      in this assignment, but we only see the directional light in play in this scene.</p>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
   </main>
 </body>
 

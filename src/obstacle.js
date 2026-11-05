@@ -48,11 +48,17 @@ const OBSTACLE_OPTIONS = [
     barrel.hitboxRadius = 1;
     barrel.onCollision = (barrel, target) => {
       if (target.label == "playerROOT") {
+        const matSel = document.getElementById("playerMat");
+        const scoreLabel = document.getElementById("score-label");
+        scoreLabel.classList.add("damage");
         target.score = 0;
         barrel.collidable = false;
         target.materialLabel = MATERIAL_DAMAGE;
+        matSel.value = MATERIAL_DAMAGE;
         setTimeout(() => {
+          matSel.value = MATERIAL_CERAMIC;
           target.materialLabel = MATERIAL_CERAMIC;
+          scoreLabel.classList.remove("damage");
         }, 500);
       }
     };
