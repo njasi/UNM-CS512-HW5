@@ -59,6 +59,9 @@ export function generateTracks(x, { length = RAIL_LENGTH, z = 0 } = {}) {
   root.addChild(railLeft);
   root.addChild(railRight);
 
+  railLeft.lightingCenter = undefined;
+  railRight.lightingCenter = undefined;
+
   root.position[0] =  x- RAIL_WIDTH / 2;
   root.position[2] = z;
 
@@ -78,6 +81,7 @@ export function generateTracks(x, { length = RAIL_LENGTH, z = 0 } = {}) {
       i * 2 - RAIL_LENGTH / 2,
     ];
     plank.materialLabel = MATERIAL_WOOD;
+    plank.lightingRadius = 40
 
     root.addChild(plank);
   }

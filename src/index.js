@@ -1,40 +1,29 @@
-import { Scene, Controls, lights } from "PotatoEngine";
-import {
-  addMaterials,
-  addShaders,
-  colors,
-  MATERIAL_CERAMIC,
-  MATERIAL_COIN,
-  MATERIAL_GOLD,
-  MATERIAL_GROUND,
-  MATERIAL_STEEL,
-  SHADER_BASICFRAGMENT,
-  SHADER_BASICVERTEX,
-  SHADER_FLATFRAGMENT,
-  SHADER_PHONGFRAGMENT,
-} from "./setup";
+import { addMaterials, addShaders, colors, MATERIAL_GROUND } from "./setup";
 import {
   ensureBuildingRowPopulated,
   generateBuilding,
   generateNextBuilding,
 } from "./buildings";
-import { PhongShaderProgram } from "PotatoEngine/src/shaders";
+import { generateCoin, addCoinSeries } from "./coin";
+import { generateTracks, startTracksLoop } from "./tracks";
+import { addRandomObstacle } from "./obstacle";
+import { addLamppost, addNextLamp } from "./lamppost";
+import { createBVHControls, updateBVHControls } from "./bvhControls";
+
+// potato engine imports
+import { Controls, lights, Scene } from "PotatoEngine";
+import { Light } from "PotatoEngine/src/lights";
 import {
   bandaiNamcoHideTail,
   cacheBVH,
   cacheOBJ,
-  generateGridObject,
   loadBVH,
   sceneAddBVH,
-} from "PotatoEngine/src/objects";
-import { Light } from "PotatoEngine/src/lights";
+} from "PotatoEngine/src/objects/loaders";
+import { generateGridObject } from "PotatoEngine/src/objects";
 import { hsv, rgb, rgba } from "PotatoEngine/src/util/color";
-import { generateCoin, addCoinSeries } from "./coin";
-import { generateTracks, startTracksLoop } from "./tracks";
-import { addRandomObstacle } from "./obstacle";
-import { LIGHT_DIRECTIONAL } from "PotatoEngine/src/lights/Light";
-import { addLamppost, addNextLamp } from "./lamppost";
-import { createBVHControls, updateBVHControls } from "./bvhControls";
+import { LIGHT_DIRECTIONAL, LIGHT_SPOT } from "PotatoEngine/src/lights/Light";
+import { scaleVec4 } from "PotatoEngine/src/util/vec4";
 
 const loader = document.getElementById("loader-wrapper");
 const scoreSpan = document.getElementById("score");
@@ -78,9 +67,10 @@ function initSceneObjects() {
     0,
     0,
   );
+  ground.lightingCenter = undefined;
   scene.addObject(ground, targetProgram, MATERIAL_GROUND);
 
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 5; i++) {
     addNextLamp(6, scene);
     addNextLamp(-6, scene);
   }
@@ -108,7 +98,7 @@ const lightSettings = {
   },
   night: {
     color: rgb(255, 248, 222),
-    intensity: 0.2,
+    intensity: 0,
     sceneColor: rgb(0, 0, 0),
   },
   gamer: {
@@ -118,11 +108,19 @@ const lightSettings = {
   },
 };
 
+const spot = new Light("spot", [0, 4, 10], {
+  type: LIGHT_SPOT,
+  direction: [0, -1, -1],
+  intensity: 0,
+  cutoff: Math.PI / 8,
+});
+
 function addLights(scene) {
   // TODO: make this a global directional light later
   globalLight.color = lightSettings.day.color;
   globalLight.intensity = lightSettings.day.intensity;
   scene.addLight(globalLight);
+  scene.addLight(spot);
 }
 
 const config = {
@@ -140,6 +138,9 @@ function initHandlers() {
   const matSel = document.getElementById("playerMat");
 
   scene.materials.forEach((mat) => {
+    if (mat.label.startsWith("FLAT_")) {
+      return;
+    }
     matSel.innerHTML += `<option value="${mat.label}">${mat.label}</option>`;
   });
 
@@ -155,6 +156,12 @@ function initHandlers() {
       globalLight.color = lightSettings[event.target.value].color;
       globalLight.intensity = lightSettings[event.target.value].intensity;
       scene.background = lightSettings[event.target.value].sceneColor;
+
+      if (event.target.value == "day") {
+        spot.intensity = 0;
+      } else {
+        spot.intensity = 5;
+      }
     });
 
   document
@@ -180,7 +187,7 @@ let lastTrain = 0;
 let lastObstacle = 0;
 const COIN_INTERVAL = 2000;
 const TRAIN_INTERVAL = 5000;
-const OBSTACLE_INTERVAL = 2000;
+const OBSTACLE_INTERVAL = 1000;
 /**
  * Overall scene update function
  */
@@ -210,6 +217,10 @@ function updateScene() {
   if (config.lightMode == "gamer") {
     globalLight.color = hsv(scene.time / 10, 1, 1);
   }
+
+  const sec = scene.time / 1000;
+
+  spot.direction = [Math.cos(sec) / 3, -0.5, -1];
 }
 
 scene.setUpdateCB(updateScene);
@@ -234,6 +245,15 @@ function setupKeyboardControls() {
   });
 }
 
+const loaderText = document.getElementById("spinner-text");
+function onProgress({ loaded, total, percent }) {
+  // gh server seems to use compressed serving so percentage is invalid
+  // (about 2-3 times higher than the real loaded amount)
+  // look into correcting it later, for now just show raw mb...
+  const mb = Math.floor(loaded / 10000) / 100;
+  loaderText.innerText = `${mb} mb`;
+}
+
 /**
  * Main init function
  * - load the scene shaders
@@ -248,29 +268,14 @@ async function main() {
   addMaterials(scene, true);
   addLights(scene);
 
-  await cacheBVH(`./public/dash.bvh`, "dash");
-  await scene.loadShaders();
-  await cacheOBJ("./public/utah_teapot.obj", "teapot");
-
-  scene.addProgram("basic", SHADER_BASICVERTEX, SHADER_BASICFRAGMENT);
-  scene.addProgram(
-    "flat",
-    SHADER_BASICVERTEX,
-    SHADER_FLATFRAGMENT,
-    PhongShaderProgram,
-  );
-
-  scene.addProgram(
-    "phong",
-    SHADER_BASICVERTEX,
-    SHADER_PHONGFRAGMENT,
-    PhongShaderProgram,
-  );
-  scene.loadMaterials();
+  await Promise.all([
+    cacheBVH(`./public/dash.bvh`, "dash", onProgress),
+    cacheOBJ("./public/utah_teapot.obj", "teapot"),
+    scene.load(),
+  ]);
 
   initSceneObjects();
   createBVHControls(player, scene);
-  scene.initBuffers();
 
   Controls.BasicControls.setupMouseControls(scene);
   // Controls.BasicControls.setupKeyboardControls(scene);

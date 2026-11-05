@@ -3,9 +3,20 @@ import {
   generateCylinderObject,
   PhysicsObject,
 } from "PotatoEngine/src/objects";
-import { colors as projectColors, MATERIAL_COIN } from "./setup";
+import {
+  colors as projectColors,
+  MATERIAL_COIN,
+  MATERIAL_CERAMIC,
+} from "./setup";
 import { updateGenericMove } from "./helpers";
 import { Scene } from "PotatoEngine";
+import { generateOBJObject, loadOBJ } from "PotatoEngine/src/objects/loaders";
+import { rgb } from "PotatoEngine/src/util/color";
+import {
+  mat4Identity,
+  mat4Scale,
+  transformPrimitive,
+} from "PotatoEngine/src/util/transformations";
 
 let coinNum = 0;
 
@@ -18,7 +29,22 @@ export function generateCoin(x, { y = COIN_RADIUS + 0.1, z = 0 } = {}) {
   const coinPrim = generateCylinder(32, COIN_RADIUS, COIN_WIDTH);
   coinPrim.generateColors(projectColors.gold);
 
-  const { vertices, normals, colors, indices } = coinPrim.toTypedArray();
+  let { vertices, normals, colors, indices } = coinPrim.toTypedArray();
+  let isTeapot = false;
+  if (Math.random() < 0.05) {
+    isTeapot = true;
+    let teapotPrim = loadOBJ("teapot");
+    teapotPrim.generateColors(rgb(255, 255, 255));
+    teapotPrim = transformPrimitive(
+      teapotPrim,
+      mat4Scale(mat4Identity(), [0.4, 0.4, 0.4]),
+    );
+    let teapot = teapotPrim.toTypedArray();
+    vertices = teapot.vertices;
+    normals = teapot.normals;
+    colors = teapot.colors;
+    indices = teapot.indices;
+  }
 
   const coin = new PhysicsObject(coinName, vertices, colors, indices, normals);
   coin.gravity = 0;
@@ -27,18 +53,30 @@ export function generateCoin(x, { y = COIN_RADIUS + 0.1, z = 0 } = {}) {
   coin.position[0] = x;
   coin.position[1] = y;
   coin.position[2] = z;
-  
+
   const collidableCoin = Object.assign(
     Object.create(PhysicsObject.prototype),
     coin,
   );
   collidableCoin.setUpdateCB(updateCoin);
 
+  collidableCoin.teapot = false;
+  if (isTeapot) {
+    coin.rotation[0] = -Math.PI / 2;
+    collidableCoin.lightingCenter = undefined;
+    collidableCoin.materialLabel = MATERIAL_CERAMIC;
+    collidableCoin.teapot = true;
+    collidableCoin.setUpdateCB(updateTeapot);
+  }
+
   collidableCoin.collidable = true;
-  collidableCoin.hitboxRadius = COIN_RADIUS/2;
+  collidableCoin.hitboxRadius = COIN_RADIUS / 2;
   collidableCoin.onCollision = (coin, target) => {
-    if (target.label == "playerROOT"){
-      coin.position[1] = -10;
+    if (target.label == "playerROOT") {
+      coin.position[0] = -100;
+      if (coin.teapot) {
+        target.score += 10;
+      }
       target.score += 1;
     }
   };
@@ -61,6 +99,18 @@ function collideCoin() {}
 function updateCoin(dt, scene) {
   updateGenericMove(this, dt, scene);
   this.rotation[1] += (dt * Math.PI) / 2;
+}
+
+/**
+ * Spin teapot, move it towards the camera
+ *
+ * maybe should have a shared "move towards camera function" since
+ * coins will use, buildings, obstacles
+ */
+function updateTeapot(dt, scene) {
+  updateGenericMove(this, dt, scene);
+  this.rotation[1] += (dt * Math.PI) / 2;
+  this.position[1] = 0.5 * Math.sin(scene.time / 800) + 0.5;
 }
 
 /**
@@ -89,6 +139,10 @@ export function addCoinSeries(
 
   for (let i = 0; i < count; i++) {
     const coin = generateCoin(x, { y, z: z - spacing * i });
-    scene.addObject(coin, shader, mat);
+    if (!!coin.materialLabel) {
+      scene.addObject(coin, shader);
+    } else {
+      scene.addObject(coin, shader, mat);
+    }
   }
 }

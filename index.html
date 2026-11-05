@@ -11,6 +11,22 @@
 
   <!-- project specific styles -->
   <script defer src="./dist/bundle.js"></script>
+
+  <style>
+    #score-label.damage {
+      background-color: red;
+      color: white;
+      font-weight: bold;
+    }
+
+    #score-label {
+      transition: all;
+      transition-duration: 100ms;
+      transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
+      min-width: 6rem;
+      padding: 5px;
+    }
+  </style>
 </head>
 
 <body>
@@ -75,12 +91,13 @@
       <div class="canvas-wrapper" style="display: flex; justify-content: center">
         <canvas id="glcanvas" width="800" height="450"></canvas>
         <div id="loader-wrapper" class="show">
+          <span id="spinner-text" class="spinner-text"></span>
           <div class="spinner"></div>
         </div>
       </div>
 
       <div class="controls">
-        <label>Score: <span id="score">0</span></label>
+        <code><label id = "score-label">Score: <span id="score">0</span></label></code>
         <label>
           Light Mode
           <select id="lightModeSelector" name="lightMode">
@@ -126,10 +143,33 @@
         Move the player with A,D, or the left/right arrow keys.
       </li>
       <li>
-        Switch to the basic shader program to visualize vertices with random colors.
+        Change the <code>Light Mode</code> to Nighttime or Gamer.
+      </li>
+      <li>
+        Change the <code>Barrel Shading Mode</code> to use a different shader program for new barrels.
+      </li>
+      <li>
+        Change the <code>Player Material</code> to select any of the materials in the scene.
+      </li>
+      <li>
+        Collect <code>Coins</code> and <code>Teapots</code> while avoiding <code>Barrels</code>.
       </li>
     </ul>
+    <h2>What's Up With The Running Animation?</h2>
+    <p>The running animation is an feature I implemented in <a href="https://cs512.njasi.com/homework/hw4/">Homework
+        4</a> that adds the ability to load BVH animation files into the Potato Engine. Homework 4 has details on it if
+      you're interested.</p>
 
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
   </main>
 </body>
 
