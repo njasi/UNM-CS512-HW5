@@ -16,6 +16,7 @@ import { Light } from "PotatoEngine/src/lights";
 import {
   bandaiNamcoHideTail,
   cacheBVH,
+  cacheOBJ,
   loadBVH,
   sceneAddBVH,
 } from "PotatoEngine/src/objects/loaders";
@@ -225,6 +226,15 @@ function setupKeyboardControls() {
   });
 }
 
+const loaderText = document.getElementById("spinner-text");
+function onProgress({ loaded, total, percent }) {
+  // gh server seems to use compressed serving so percentage is invalid
+  // (about 2-3 times higher than the real loaded amount)
+  // look into correcting it later, for now just show raw mb...
+  const mb = Math.floor(loaded / 10000) / 100;
+  loaderText.innerText = `${mb} mb`;
+}
+
 /**
  * Main init function
  * - load the scene shaders
@@ -239,8 +249,11 @@ async function main() {
   addMaterials(scene, true);
   addLights(scene);
 
-  await cacheBVH(`./public/dash.bvh`, "dash");
-  await scene.load();
+  await Promise.all([
+    cacheBVH(`./public/dash.bvh`, "dash", onProgress),
+    cacheOBJ("./public/utah_teapot.obj", "teapot"),
+    scene.load()
+  ]);
 
   initSceneObjects();
   createBVHControls(player, scene);

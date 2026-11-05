@@ -1,5 +1,5 @@
 import { common } from "PotatoEngine/src/materials";
-import { PhongShaderProgram, Shader } from "PotatoEngine/src/shaders";
+import { PhongShaderProgram, Shader, ShaderProgram } from "PotatoEngine/src/shaders";
 import { rgb } from "PotatoEngine/src/util/color";
 
 export const MATERIAL_CERAMIC = "CERAMIC";
@@ -55,7 +55,7 @@ export function addShaders(scene) {
     "basic",
     "../PotatoEngine/src/shaders/vertex/vertex.vert",
     "../PotatoEngine/src/shaders/fragment/fragment.frag",
-    PhongShaderProgram,
+    ShaderProgram,
   );
 }
 
