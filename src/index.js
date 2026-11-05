@@ -22,7 +22,8 @@ import {
 } from "PotatoEngine/src/objects/loaders";
 import { generateGridObject } from "PotatoEngine/src/objects";
 import { hsv, rgb, rgba } from "PotatoEngine/src/util/color";
-import { LIGHT_DIRECTIONAL } from "PotatoEngine/src/lights/Light";
+import { LIGHT_DIRECTIONAL, LIGHT_SPOT } from "PotatoEngine/src/lights/Light";
+import { scaleVec4 } from "PotatoEngine/src/util/vec4";
 
 const loader = document.getElementById("loader-wrapper");
 const scoreSpan = document.getElementById("score");
@@ -97,7 +98,7 @@ const lightSettings = {
   },
   night: {
     color: rgb(255, 248, 222),
-    intensity: 0.2,
+    intensity: 0,
     sceneColor: rgb(0, 0, 0),
   },
   gamer: {
@@ -107,11 +108,19 @@ const lightSettings = {
   },
 };
 
+const spot = new Light("spot", [0, 4, 10], {
+  type: LIGHT_SPOT,
+  direction: [0, -1, -1],
+  intensity: 0,
+  cutoff: Math.PI / 8,
+});
+
 function addLights(scene) {
   // TODO: make this a global directional light later
   globalLight.color = lightSettings.day.color;
   globalLight.intensity = lightSettings.day.intensity;
   scene.addLight(globalLight);
+  scene.addLight(spot);
 }
 
 const config = {
@@ -147,6 +156,12 @@ function initHandlers() {
       globalLight.color = lightSettings[event.target.value].color;
       globalLight.intensity = lightSettings[event.target.value].intensity;
       scene.background = lightSettings[event.target.value].sceneColor;
+
+      if (event.target.value == "day") {
+        spot.intensity = 0;
+      } else {
+        spot.intensity = 5;
+      }
     });
 
   document
@@ -202,6 +217,10 @@ function updateScene() {
   if (config.lightMode == "gamer") {
     globalLight.color = hsv(scene.time / 10, 1, 1);
   }
+
+  const sec = scene.time / 1000;
+
+  spot.direction = [Math.cos(sec) / 3, -0.5, -1];
 }
 
 scene.setUpdateCB(updateScene);
@@ -252,7 +271,7 @@ async function main() {
   await Promise.all([
     cacheBVH(`./public/dash.bvh`, "dash", onProgress),
     cacheOBJ("./public/utah_teapot.obj", "teapot"),
-    scene.load()
+    scene.load(),
   ]);
 
   initSceneObjects();

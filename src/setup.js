@@ -82,7 +82,7 @@ export function addMaterials(scene, flat = false) {
 
   scene.addMaterial(
     common.generateMaterial(prefix + MATERIAL_BUILDING, {
-      ka: [0.3, 0.3, 0.3],
+      ka: [0.2, 0.2, 0.2],
       kd: [0.8, 0.8, 0.8],
       ks: [0.2, 0.2, 0.2],
       specularExp: 32,
@@ -92,8 +92,8 @@ export function addMaterials(scene, flat = false) {
 
   scene.addMaterial(
     common.generateMaterial(prefix + MATERIAL_GROUND, {
-      ka: [0.6, 0.6, 0.6],
-      kd: [0.3, 0.3, 0.3],
+      ka: [0.2, 0.2, 0.2],
+      kd: [0.6, 0.6, 0.6],
       ks: [0, 0, 0],
       specularExp: 4,
     }),
