@@ -39,22 +39,22 @@ export const colors = {
 export function addShaders(scene) {
   scene.createProgram(
     "phong",
-    "../PotatoEngine/src/shaders/vertex/vertex.vert",
-    "../PotatoEngine/src/shaders/fragment/phong.frag",
+    "./PotatoEngine/src/shaders/vertex/vertex.vert",
+    "./PotatoEngine/src/shaders/fragment/phong.frag",
     PhongShaderProgram,
   );
 
   scene.createProgram(
     "flat",
-    "../PotatoEngine/src/shaders/vertex/vertex.vert",
+    "./PotatoEngine/src/shaders/vertex/vertex.vert",
     "./src/flat.frag",
     PhongShaderProgram,
   );
 
   scene.createProgram(
     "basic",
-    "../PotatoEngine/src/shaders/vertex/vertex.vert",
-    "../PotatoEngine/src/shaders/fragment/fragment.frag",
+    "./PotatoEngine/src/shaders/vertex/vertex.vert",
+    "./PotatoEngine/src/shaders/fragment/fragment.frag",
     ShaderProgram,
   );
 }
