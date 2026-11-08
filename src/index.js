@@ -188,6 +188,7 @@ let lastObstacle = 0;
 const COIN_INTERVAL = 2000;
 const TRAIN_INTERVAL = 5000;
 const OBSTACLE_INTERVAL = 1000;
+
 /**
  * Overall scene update function
  */
@@ -224,6 +225,24 @@ function updateScene() {
 }
 
 scene.setUpdateCB(updateScene);
+
+function setupMobileControls() {
+  scene.canvas.addEventListener("touchstart", (event) => {
+    const right =
+      event.touches[0].clientX - event.target.getBoundingClientRect().left >
+      event.target.width / 2;
+    const playerX = player.position[0];
+    if (right) {
+      if (playerX <= 0) {
+        player.position[0] += 4;
+      }
+    } else {
+      if (playerX >= 0) {
+        player.position[0] -= 4;
+      }
+    }
+  });
+}
 
 function setupKeyboardControls() {
   document.addEventListener("keydown", (e) => {
@@ -280,6 +299,7 @@ async function main() {
   Controls.BasicControls.setupMouseControls(scene);
   // Controls.BasicControls.setupKeyboardControls(scene);
   setupKeyboardControls();
+  setupMobileControls();
   initHandlers();
 
   loader.className = "";
